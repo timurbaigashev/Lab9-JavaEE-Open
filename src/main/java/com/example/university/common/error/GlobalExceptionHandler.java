@@ -1,4 +1,4 @@
 package com.example.university.common.error;
 
-public class GlobalErrorHandler {
+public class GlobalExceptionHandler {
 }

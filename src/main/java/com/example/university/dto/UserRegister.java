@@ -2,7 +2,7 @@ package com.example.university.dto;
 
 import jakarta.validation.constraints.*;
 
-public class UserRegisterDto {
+public class UserRegister {
 
     @NotBlank
     @Size(min = 3, max = 50)

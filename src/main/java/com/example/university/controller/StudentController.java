@@ -1,7 +1,9 @@
 package com.example.university.controller;
 
+import com.example.university.dto.PageResponse;
 import com.example.university.dto.StudentCreateRequest;
 import com.example.university.dto.StudentResponse;
+import com.example.university.model.Student;
 import com.example.university.service.StudentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +51,16 @@ public class StudentController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<PageResponse<StudentResponse>> getAll(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String dir
+    ) {
+        return ResponseEntity.ok(service.getAllPaged(page, size, sortBy, dir));
     }
 
     @DeleteMapping("/{id}")
