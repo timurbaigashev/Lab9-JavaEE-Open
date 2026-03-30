@@ -1,8 +1,10 @@
 package com.example.university.repository;
 
+import com.example.university.dto.StudentResponse;
 import com.example.university.model.Student;
 import static com.example.university.mapper.StudentRowMappers.STUDENT;
 
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +14,7 @@ import java.util.Optional;
 @Repository
 public class StudentRepository {
     private final JdbcTemplate jdbc;
+
 
     public StudentRepository(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 

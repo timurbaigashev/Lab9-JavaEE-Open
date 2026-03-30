@@ -5,6 +5,7 @@ import com.example.university.dto.StudentCreateRequest;
 import com.example.university.dto.StudentResponse;
 import com.example.university.model.Student;
 import com.example.university.service.StudentService;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,7 +55,7 @@ public class StudentController {
     }
 
     @GetMapping
-    public ResponseEntity<PageResponse<StudentResponse>> getAll(
+    public ResponseEntity<PageResponse<StudentResponse>> getAllPaged(
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sortBy,

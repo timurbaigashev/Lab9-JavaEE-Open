@@ -10,13 +10,17 @@ import org.springframework.jdbc.core.RowMapper;
 public final class StudentRowMappers {
     private StudentRowMappers() {}
 
-    public static final RowMapper<Student> STUDENT = (rs, rn) -> new Student(
-            rs.getLong("id"),
-            rs.getString("first_name"),
-            rs.getString("last_name"),
-            rs.getString("email"),
-            rs.getInt("age")
-    );
+    public static final RowMapper<Student> STUDENT = (rs, rn) -> {
+        Student s = new Student();
+        s.setId(rs.getLong("id"));
+        s.setFirstName(rs.getString("first_name"));
+        s.setLastName(rs.getString("last_name"));
+        s.setEmail(rs.getString("email"));
+        s.setAge(rs.getInt("age"));
+        // Если в таблице есть дата создания:
+        // s.setCreatedAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null);
+        return s;
+    };
 
     // Если у тебя другая схема profile/course — поправь названия колонок тут
     public static final RowMapper<StudentProfile> PROFILE = (rs, rn) -> {
