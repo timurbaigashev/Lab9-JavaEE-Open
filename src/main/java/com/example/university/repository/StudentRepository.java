@@ -6,8 +6,12 @@ import static com.example.university.mapper.StudentRowMappers.STUDENT;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,15 +22,42 @@ public class StudentRepository {
 
     public StudentRepository(JdbcTemplate jdbc) { this.jdbc = jdbc; }
 
-    public Student insert(Student s) {
-        Long id = jdbc.queryForObject("""
-            INSERT INTO public.students(first_name,last_name,email,age)
-            VALUES (?,?,?,?)
-            RETURNING id
-        """, Long.class, s.getFirstName(), s.getLastName(), s.getEmail(), s.getAge());
+//    public Student insert(Student s) {
+//        String sql = """
+//        INSERT INTO public.students(first_name, last_name, email, age, password, verification_code)
+//        VALUES (?, ?, ?, ?, ?, ?)
+//        RETURNING id
+//    """;
+//
+//        Long id = jdbc.queryForObject(sql, Long.class,
+//                s.getFirstName(),
+//                s.getLastName(),
+//                s.getEmail(),
+//                s.getAge(),
+//                s.getPassword(),
+//                s.getVerificationCode()
+//        );
+//
+//        s.setId(id);
+//        return s;
+//    }
+public Student insert(Student s) {
+    String sql = "INSERT INTO students (first_name, last_name, email, age, password, verification_code) " +
+            "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
 
-        return findById(id).orElseThrow();
-    }
+    // Используем queryForObject, чтобы получить сгенерированный ID обратно
+    Integer generatedId = jdbc.queryForObject(sql, Integer.class,
+            s.getFirstName(),
+            s.getLastName(),
+            s.getEmail(),
+            s.getAge(),
+            s.getPassword(),
+            s.getVerificationCode()
+    );
+
+    s.setId(Long.valueOf(generatedId)); // Устанавливаем полученный ID в объект
+    return s; // Возвращаем объект с заполненным ID
+}
 
     public Long insertReturningId(Student s) {
         return jdbc.queryForObject("""

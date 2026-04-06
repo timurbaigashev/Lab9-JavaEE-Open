@@ -1,7 +1,5 @@
 package com.example.university.model;
 
-import org.jspecify.annotations.Nullable;
-
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,12 +10,13 @@ public class Student {
     private String lastName;
     private String email;
     private String password;
-    private Set<String> roles = new HashSet<>();
-    private int age;
+//    private Set<String> roles = new HashSet<>();
+    private Integer age;
     public OffsetDateTime createdAt;
+    String verificationCode;
 
-    public Student() {}
-    public Student(String firstName, String lastName, String email, String password, int age) {
+
+    public Student(String firstName, String lastName, String email, String password, Integer age) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -26,18 +25,11 @@ public class Student {
     }
 
 
-    public Student(long id, String firstName, String lastName, String email, int age) {
+    public Student(Long id, String firstName, String lastName, String email, Integer age) {
     }
 
-    public Student(Long id, String firstName, String lastName, String email, String password, Set<String> roles, int age, OffsetDateTime createdAt) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.roles = roles;
-        this.age = age;
-        this.createdAt = createdAt;
+    public Student() {
+
     }
 
 
@@ -52,9 +44,12 @@ public class Student {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public Integer getAge() { return age; }
-    public void setAge(int age) { this.age = age; }
-    public Set<String> getRoles() { return roles; }
-    public void setRoles(Set<String> roles) { this.roles = roles; }
+    public void setAge(Integer age) { this.age = age; }
+//    public Set<String> getRoles() { return roles; }
+//    public void setRoles(Set<String> roles) { this.roles = roles; }
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }
+    public String getVerificationCode() { return  verificationCode; }
+    public void setVerificationCode(String verificationCode) {
+    }
 }

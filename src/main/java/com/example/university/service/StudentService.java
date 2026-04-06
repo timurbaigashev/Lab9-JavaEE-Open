@@ -21,17 +21,33 @@ public class StudentService {
     private final StudentRepository students;
     private final ProfileRepository profiles;
     private final CourseRepository courses;
+    // 1. Добавляем поле для почтового сервиса
+    private final EmailService emailService;
 
-    public StudentService(StudentRepository students, ProfileRepository profiles, CourseRepository courses) {
+    // 2. Обновляем конструктор (Spring автоматически внедрит зависимость)
+    public StudentService(StudentRepository students,
+                          ProfileRepository profiles,
+                          CourseRepository courses,
+                          EmailService emailService) {
         this.students = students;
         this.profiles = profiles;
         this.courses = courses;
+        this.emailService = emailService;
     }
 
     // Task: Save Student with Profile atomically
     @Transactional
     public StudentResponse create(StudentCreateRequest req) {
-        Student s = new Student(null, req.firstName, req.lastName, req.email, req.age );
+
+        if (req.email == null || !req.email.contains("@")) {
+            throw new IllegalArgumentException("Некорректный формат Email");
+        }
+
+        if (req.getFirstName() == null || req.getFirstName().isBlank()) {
+            throw new IllegalArgumentException("Имя не может быть пустым");
+        }
+
+        Student s = new Student((String) null, req.getFirstName(), req.lastName, req.email, req.age );
 
         Long id;
         try {
@@ -48,6 +64,11 @@ public class StudentService {
             p.setBirthDate(req.profile.birthDate);
             profiles.insert(p);
         }
+
+        // 3. Вызов асинхронной отправки почты
+        // Логика логирования в MongoDB инкапсулирована внутри emailService.sendEmailAsync
+        String welcomeMsg = "Добро пожаловать, " + s.getFirstName() + "! Вы успешно зарегистрированы.";
+        emailService.sendEmailAsync(s.getEmail(), "Регистрация в University", welcomeMsg);
 
         return getById(id);
     }
@@ -113,5 +134,9 @@ public class StudentService {
     @Transactional
     public void delete(Long id) {
         students.deleteById(id);
+    }
+
+    public Object getAllPaged() {
+        return getAllPaged(0, 10, "sortBy", "dir");
     }
 }

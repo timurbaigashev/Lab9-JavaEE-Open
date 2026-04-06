@@ -3,9 +3,9 @@ package com.example.university.config;
 import com.example.university.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -23,19 +23,24 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
+        http
+                .csrf(csrf -> csrf.disable()) // Отключаем для REST API
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Добавляем "/error", чтобы видеть ошибки сервера
-                        .requestMatchers("/auth/**", "/error").permitAll()
+                        // Разрешаем доступ к авторизации, регистрации, ошибкам и OAuth эндпоинтам
+                        .requestMatchers("/auth/**", "/error", "/login/**", "/oauth2/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                // Настройка входа через Google
+                .oauth2Login(oauth -> oauth
+                        .defaultSuccessUrl("/students", true) // Куда редиректить после успешного входа через Gmail
+                )
+                // Добавляем твой JWT фильтр
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
-    // Оставляем этот метод здесь
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

@@ -1,8 +1,10 @@
 package com.example.university.service;
 
 import com.example.university.dto.RegisterRequest;
+import com.example.university.dto.RegistrationRequest;
 import com.example.university.model.Session;
 import com.example.university.model.Student;
+import com.example.university.repository.StudentRepository;
 import com.example.university.security.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -22,57 +24,96 @@ public class AuthService {
     private final MongoTemplate mongoTemplate;
     private final JwtProvider jwtProvider;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final StudentRepository repo;
+    private final EmailService mailService; // 1. Добавили MailService
 
     @Autowired
     public AuthService(JdbcTemplate jdbcTemplate, MongoTemplate mongoTemplate,
-                       JwtProvider jwtProvider, BCryptPasswordEncoder passwordEncoder) {
+                       JwtProvider jwtProvider, BCryptPasswordEncoder passwordEncoder,
+                       StudentRepository repo, EmailService mailService) { // 2. Внедряем через конструктор
         this.jdbcTemplate = jdbcTemplate;
         this.mongoTemplate = mongoTemplate;
         this.jwtProvider = jwtProvider;
         this.passwordEncoder = passwordEncoder;
+        this.repo = repo;
+        this.mailService = mailService;
     }
 
-    public void register(RegisterRequest request) {
-        // 1. Хешируем пароль перед сохранением в базу!
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
+    public void register(RegistrationRequest req) {
+        if (repo.existsByEmail(req.getEmail())) {
+            throw new RuntimeException("Email already taken");
+        }
 
-        // 2. Сохраняем нового студента в PostgreSQL (или другую SQL базу) через JdbcTemplate
-        String sql = "INSERT INTO students (first_name, last_name, email, password, age) VALUES (?, ?, ?, ?, ?)";
+        String encodedPassword = passwordEncoder.encode(req.getPassword());
 
-        jdbcTemplate.update(sql,
-                request.getFirstName(),
-                request.getLastName(),
-                request.getEmail(),
-                encodedPassword,
-                0 // возраст по умолчанию, если его нет в форме регистрации
-        );
+        String verificationCode = String.valueOf((int)((Math.random() * 900000) + 100000));
+
+        Student s = new Student();
+        s.setFirstName(req.getFirstName());
+        s.setLastName(req.getLastName());
+        s.setEmail(req.getEmail());
+        s.setAge(req.getAge());
+        s.setPassword(encodedPassword);
+
+        s.setVerificationCode(verificationCode);
+
+        repo.insert(s);
+
+        mailService.sendVerificationCode(req.getEmail(), verificationCode);
     }
 
     public String login(String email, String rawPassword) {
+
         String sql = "SELECT * FROM students WHERE email = ?";
+
         Student student;
 
+
+
         try {
+
             student = jdbcTemplate.queryForObject(sql,
+
                     new BeanPropertyRowMapper<>(Student.class), email);
+
         } catch (EmptyResultDataAccessException e) {
-            // Если юзер не найден в SQL
+
+// Если юзер не найден в SQL
+
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Пользователь не найден");
+
         }
+
+
 
         if (student != null && passwordEncoder.matches(rawPassword, student.getPassword())) {
+
             String token = jwtProvider.generateToken(email);
 
+
+
             Session session = new Session();
+
             session.setStudentId(student.getId());
+
             session.setToken(token);
+
             session.setExpiryDate(Instant.now().plusSeconds(86400));
 
+
+
             mongoTemplate.save(session);
+
             return token;
+
         }
 
-        // Если пароль не подошел
+
+
+// Если пароль не подошел
+
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный пароль");
+
     }
+
 }

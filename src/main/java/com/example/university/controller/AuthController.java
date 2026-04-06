@@ -3,6 +3,7 @@ package com.example.university.controller;
 import com.example.university.dto.AuthResponse;
 import com.example.university.dto.LoginRequest;
 import com.example.university.dto.RegisterRequest;
+import com.example.university.dto.RegistrationRequest;
 import com.example.university.service.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@RequestBody RegistrationRequest request) {
         // Вызываем метод регистрации в сервисе
         authService.register(request);
 
